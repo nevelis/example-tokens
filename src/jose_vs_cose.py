@@ -2,7 +2,17 @@ from jwcrypto import jwk, jws, jwt, jwe
 from jwcrypto.common import json_encode, json_decode
 from cbor2 import dumps, loads
 from cose import SymmetricKey, Enc0Message, CoseAlgorithms, KeyOps, CoseHeaderKeys
+from itertools import zip_longest
 import time
+
+
+def group(n, iterable, fillvalue=None): 
+    args = [iter(iterable)] * n
+    return zip_longest(fillvalue=fillvalue, *args)
+
+def dump_c_hex(data):
+    return ', '.join([''.join(['0x', *x]) for x in group(2, data.hex())])
+
 
 payload = {'bip': '172.31.0.3', 'exp': 1893456000, 'sid':520987254}
 
@@ -25,10 +35,11 @@ print("=========================================================")
 
 cose_secret = SymmetricKey.generate_key(key_len=16, algorithm=CoseAlgorithms.A128GCM, key_ops=KeyOps.ENCRYPT)
 payload = dumps(payload)
-nonce = b'\x00\x01\x02\x03\x00\x01\x02\x03\x00\x01\x02\x03\x00\x01\x02\x03'
+nonce = b'\x00\x01\x02\x03' * 3
 cwetoken = Enc0Message({CoseHeaderKeys.ALG: CoseAlgorithms.A128GCM}, {CoseHeaderKeys.IV: nonce}, payload).encode(nonce, cose_secret)
 
 print("=========================================================")
-print("CWE TOKEN : %s" % cwetoken.hex())
+print("CWE KEY :   %s" % dump_c_hex(cose_secret.k))
+print("CWE TOKEN : %s" % dump_c_hex(cwetoken))
 print("CWE TOKEN with length:%d" % len(cwetoken))
 print("=========================================================")
