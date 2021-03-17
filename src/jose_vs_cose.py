@@ -29,6 +29,6 @@ nonce = b'\x00\x01\x02\x03\x00\x01\x02\x03\x00\x01\x02\x03\x00\x01\x02\x03'
 cwetoken = Enc0Message({CoseHeaderKeys.ALG: CoseAlgorithms.A128GCM}, {CoseHeaderKeys.IV: nonce}, payload).encode(nonce, cose_secret)
 
 print("=========================================================")
-print("CWE TOKEN : %s" % cwetoken)
+print("CWE TOKEN : %s" % cwetoken.hex())
 print("CWE TOKEN with length:%d" % len(cwetoken))
 print("=========================================================")
