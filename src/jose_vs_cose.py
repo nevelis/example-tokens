@@ -39,7 +39,7 @@ nonce = b'\x00\x01\x02\x03' * 3
 cwetoken = Enc0Message({CoseHeaderKeys.ALG: CoseAlgorithms.A128GCM}, {CoseHeaderKeys.IV: nonce}, payload).encode(nonce, cose_secret)
 
 print("=========================================================")
-print("CWE KEY :   %s" % dump_c_hex(cose_secret.k))
-print("CWE TOKEN : %s" % dump_c_hex(cwetoken))
+print("CWE KEY :   %s" % cose_secret.k.hex())
+print("CWE TOKEN : %s" % cwetoken.hex())
 print("CWE TOKEN with length:%d" % len(cwetoken))
 print("=========================================================")
