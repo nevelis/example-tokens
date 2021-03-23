@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+
+from cbor2 import dumps
+from cose import SymmetricKey, Enc0Message, CoseAlgorithms, KeyOps, CoseHeaderKeys
+from itertools import zip_longest
+import time
+
+
+ONE_WEEK = 60 * 60 * 24 * 7
+
+
+def group(n, iterable, fillvalue=None): 
+    args = [iter(iterable)] * n
+    return zip_longest(fillvalue=fillvalue, *args)
+
+def dump_c_hex(data):
+    return ', '.join([''.join(['0x', *x]) for x in group(2, data.hex())])
+
+cose_secret = SymmetricKey.generate_key(key_len=16, algorithm=CoseAlgorithms.A128GCM, key_ops=KeyOps.ENCRYPT)
+nonce = b'\x00\x01\x02\x03' * 3
+
+cwetoken1 = Enc0Message(
+    {CoseHeaderKeys.ALG: CoseAlgorithms.A128GCM},
+    {CoseHeaderKeys.IV: nonce},
+    dumps({
+        'bip': '10.0.0.208',
+        'exp': int(time.time() + ONE_WEEK),
+        'sid': 97046299,
+    })
+).encode(nonce, cose_secret)
+
+cwetoken2 = Enc0Message(
+    {CoseHeaderKeys.ALG: CoseAlgorithms.A128GCM},
+    {CoseHeaderKeys.IV: nonce},
+    dumps({
+        'bip': '10.1.0.209',
+        'exp': int(time.time() + ONE_WEEK),
+        'sid': 97046299,
+    })
+).encode(nonce, cose_secret)
+
+print("=========================================================")
+print("CWE KEY :   %s" % cose_secret.k.hex())
+print("CWE TOKEN 1: %s" % cwetoken1.hex())
+print("CWE TOKEN 2: %s" % cwetoken2.hex())
+print("=========================================================")
