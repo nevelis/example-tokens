@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
+from binascii import hexlify, unhexlify
 from cbor2 import dumps
-from cose import SymmetricKey, Enc0Message, CoseAlgorithms, KeyOps, CoseHeaderKeys
+from cose import SymmetricKey, Enc0Message, CoseAlgorithms, KeyOps, \
+                 CoseHeaderKeys, KTY, EC2
+from cose.keys.cosekey import CoseKey
+
 from itertools import zip_longest
 import time
 
@@ -16,7 +20,25 @@ def group(n, iterable, fillvalue=None):
 def dump_c_hex(data):
     return ', '.join([''.join(['0x', *x]) for x in group(2, data.hex())])
 
-cose_secret = SymmetricKey.generate_key(key_len=16, algorithm=CoseAlgorithms.A128GCM, key_ops=KeyOps.ENCRYPT)
+if False:
+    # Generate an EC2 key pair
+    cose_secret = EC2.generate_key(algorithm=CoseAlgorithms.A128GCM, key_ops=KeyOps.ENCRYPT)
+else:
+    if False:
+        # Generate a new key
+        newkey = SymmetricKey.generate_key(key_len=16, algorithm=CoseAlgorithms.A128GCM, key_ops=KeyOps.ENCRYPT)
+        key = hexlify(newkey.k)
+    else:
+        # Use an existing key
+        key = '2a6dfbc9f5fff03b99c8bd7f3f05064d'
+    cose_key = {
+        SymmetricKey.Common.KTY: KTY.SYMMETRIC,
+        SymmetricKey.Common.ALG: CoseAlgorithms.A128GCM,
+        SymmetricKey.Common.KEY_OPS: KeyOps.ENCRYPT,
+        SymmetricKey.SymPrm.K: unhexlify(key),
+    }
+    cose_secret = CoseKey.decode(cose_key)
+
 nonce = b'\x00\x01\x02\x03' * 3
 
 cwetoken1 = Enc0Message(
